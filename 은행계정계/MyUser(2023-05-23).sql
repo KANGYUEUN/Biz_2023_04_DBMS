@@ -105,3 +105,183 @@ java 의 데이터 클래스가 여기에 해당한다.
 
 
 
+SELECT * FROM tbl_buyer;
+
+-- 매우 위험한 코드
+-- update 나 delete 를 수행 할때는 PK 가 아닌 칼럼을 기준으로 하지 마라 
+-- 만약 PK 아닌 칼럼을 기준으로 할때는 매우 신중하게 명령을 수행 해야 한다.
+UPDATE tbl_buyer
+SET buTel = '010-333-3333'
+WHERE buname = '성춘향';
+
+/*
+tbl_buyer 테이브에 성춘향 데이터 중 전화번호가 없는 데이터가 있다
+전화번호가 없는 성춘향 데이터의 전화번호를 010-333-3333 으로 변경 하고 자 한다.
+
+1. buname 칼럼의 데이터가 성춘향인 리스트를 조회한다.
+2. 전화번호가 없는(null) 인 데이터에 buid 값을 확인 (0003) 임을 확인.
+3.
+
+
+*/
+SELECT * FROM tbl_buyer WHERE buname = '성춘향';
+UPDATE tbl_buyer SET butel = '010-222-2222'
+WHERE buid = '0002';
+
+SELECT * FROM tbl_buyer WHERE buname = '성춘향';
+UPDATE tbl_buyer SET butel = '010-333-3333'
+WHERE buid = '0003';
+
+/*
+1. 전체 고객 데이터를 조회 : SELECT * FROM tbl_buyer;
+이몽룡의 주소가 현재 서울 특별시 이다 근데 이몽룡이 전라북도 익산시로 변경됨
+2. 이몽룡의 데이터 조회하기 : SELECT * FROM tbl_buyer WHERE buname = '이몽룡';
+3. 주소 업데이트 하기 : UPDATE tbl_buyer SET buaddr = '전라북도 익산시'
+    WHERE buid = '0001';
+*/
+
+SELECT * FROM tbl_buyer;
+SELECT * FROM tbl_buyer WHERE buname = '이몽룡';
+UPDATE tbl_buyer SET buaddr = '전라북도 익산시'
+WHERE buid = '0001';
+
+SELECT * FROM tbl_buyer;
+
+-- PK 인 buid 값이 0004 데이터를 삭제 하기
+-- 중요한 데이터는 함부러 하지 않음.
+DELETE FROM tbl_buyer WHERE buid = '0004';
+SELECT * FROM tbl_buyer;
+
+
+-- 데이터 추가 
+-- 칼럼목록 개수, 순서 = 데이터 목록 개수, 순서와 서로 일치해야함.
+INSERT INTO [table] (칼럼목록) VALUES(데이터 목록);
+
+-- 데이터 조회
+SELECT 칼럼목록 FROM [table] WHERE 칼럼 = 값;
+
+-- 데이터 수정
+UPDATE [table] SET 칼럼 = 값   -- 변경할 변수와 값
+WHERE 칼럼 = 값;                -- 변경할 조건
+
+-- 데이터 삭제
+DELETE FROM [table] 
+WHERE 칼럼 = 값; -- 삭제할 조건
+
+
+-- 계좌정보 
+CREATE TABLE tbl_acc (
+	acNum	VARCHAR2(10) PRIMARY KEY,
+	acDiv	VARCHAR2(1)	NOT NULL,	
+	acBuId	VARCHAR2(5)	NOT NULL,	
+    acBalance	NUMBER	DEFAULT 0	
+);
+
+--  각 고객의 계좌정보 생성하기 
+INSERT INTO tbl_acc(acNum, acDiv, acBuid, acBalance)
+VALUES('2023052301','1','0003',10000);
+
+INSERT INTO tbl_acc(acNum, acDiv, acBuid, acBalance)
+VALUES('2023052302','1','0001',50000);
+
+INSERT INTO tbl_acc(acNum, acDiv, acBuid, acBalance)
+VALUES('2023052303','1','0002',10000);
+
+SELECT * FROM tbl_acc;
+
+/*
+현재 계좌정보를 조회 했는데 
+고객정보가 고객 ID 뿐이여서 고객에 대한 이름, 전화번호 등을 알수가 없다.
+고객정보와 계좌정보를 연계하여 함께 볼수 있다면 좋겠다.
+
+< TABLE JOIN >
+2개 이상의 table 을 서로 연계 하여 하나의 리스트로 보기
+
+tbl_acc와 tbl_buyer 테이블을 연계하여 하나의 리스트로 보여라
+이때 tbl_acc 의 acBuid 와tbl_buyer  buid 칼럼의 데이터를 비교하여 
+같은 데이터는 한 라인에 보여라.
+*/
+SELECT * FROM tbl_acc, tbl_buyer
+WHERE acBuId = buid;
+
+-- 조인하되, 4개의 칼럼만 화면에 나타나도록 하고싶다.
+SELECT  acNum, acBuId, buName, buTel
+FROM tbl_acc, tbl_buyer
+WHERE acBuId = buid;
+
+SELECT * FROM tbl_buyer;
+
+-- Projection SELECT 조회를 할때 * 사용 하지 않고 칼럼을 정렬하는것
+SELECT buid, buname, butel, buaddr, bubirth, bujob
+FROM tbl_buyer
+ORDER BY buname, butel;
+
+
+INSERT INTO tbl_buyer(buid, buname, butel)
+VALUES ('0004','임꺽정','010-444-4444');
+
+/*
+ < SQL Deceloper  와 Java 코드에서 DB 를 서로 연동하여 처리하는 경우 발생하는 문제 >
+SQL 에서 데이터를 INSERT, UPDATE, DELETE 하는 경우 
+추가 수정 삭제된 정보는 아직 스토리지에 반영되지 않고
+메모리에 임시 보관 저장 되어있는 상태 이다.
+
+이 상태일때 자바에서 SELECT 를 수행하면 INSERT, UPDEATE, DELETE 된 데이터가 아닌 
+이전 상태이 데이터가 조회 된다.
+
+간혼 이 상황에서 DBMS 가 Connection 에서 무한정 응답하지 않는 경우도 있다.
+자바는 DBMS가 응답하기를 기다리면서 무한정 기다리고 마치 프로젝트가 멈춘(Down)
+상태가 되어버린다. 
+
+SQL 에서 INSERT, UPDATE, DELETE 를 수행한 다음에는 강제로 스토리지에 
+' Commit ' 을 해주어야 한다.
+그래야만 Java 프로젝트에서 데이터를 조회 할 수 있다.
+*/
+
+Commit;
+
+SELECT * FROM tbl_buyer;
+
+INSERT INTO tbl_buyer(buid, buname)
+VALUES ('0005','장길산');
+
+-- Commit 이 되기 전의 데이터를 취소하는 명령
+ROLLBACK;
+
+-- PK 칼럼 기준으로 조건 설정하여 조회하기
+-- 이를 조회하면 데이터 없거나, 1개만 조회된다.
+SELECT buid, buname, butel, buaddr, bubirth, bujob
+FROM tbl_buyer
+WHERE buid = '0001';
+
+INSERT INTO tbl_buyer(buid, buname, butel)
+VALUES('0001','이','010-1111')
+
+UPDATE tbl_buyer
+SET buname = '',
+    butel = '',
+    buaddr = '',
+    bubirth = '',
+    bujob = ''
+WHERE buid = ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
