@@ -41,7 +41,7 @@ Create USER 'todo'@'%' identified by '88888888';
 
 -- ALL PRIVILEGES : DBA 권한.
 -- *.* : 모든 DataBase 에 대하여 모든 역할 수행
-grant ALL privileges ON *.* To 'todo'@'localhost';
+grant ALL privileges ON *.* To 'todo'@'localhost';]
 -- 네트워크를 통하여 접근한 todo 사용자에게
 -- todoDB에 대하여 모든 권한을 부여하기
 grant ALL privileges ON todoDB.* To 'todo'@'192.168.4.%';
