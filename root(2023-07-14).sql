@@ -34,7 +34,7 @@ select * from tbl_bbs;
 -- 여러개 이미지 파일 업로드를 위한 새로운 table 만들기
 create table tbl_images (
 	i_seq			bigint		PRIMARY KEY		AUTO_INCREMENT,
-	i_bpseq			bigint		NOT NULL,
+	i_bseq			bigint		NOT NULL,
 	i_originalName	varchar(125),			
 	i_uploadName	varchar(255)			
 );
